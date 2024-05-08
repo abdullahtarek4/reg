@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrices</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url("static/dark1.jpg");
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+
+        .matrices,
+        .results,
+        .equation {
+            margin-top: 20px;
+        }
+    </style>
+
+
+
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>Multiple Linear Regression</h1>
+        <div class="matrices">
+            <h2>Matrices:</h2>
+            <p id="matrixX"></p>
+            <p id="matrixXTX"></p>
+            <p id="matrixXTXInverse"></p>
+            <p id="matrixXTY"></p>
+        </div>
+        <div class="results">
+            <h2>Results:</h2>
+            <p id="matrixB"></p>
+            <p id="matrixE"></p>
+        </div>
+        <div class="equation">
+            <h2>Regression Equation:</h2>
+            <p id="regressionEquation"></p>
+        </div>
+    </div>
+    
+
+    <script>
+        // Boston housing dataset
+        const data = [
+                { TAX: 296.0, RM: 6.575, LSTAT: 4.98, DIS: 4.0900, MEDV: 24.0 },
+                { TAX: 242.0, RM: 6.421, LSTAT: 9.14, DIS: 4.9671, MEDV: 21.6 },
+                { TAX: 242.0, RM: 7.185, LSTAT: 4.03, DIS: 4.9671, MEDV: 34.7 },
+                { TAX: 222.0, RM: 6.998, LSTAT: 2.94, DIS: 6.0622, MEDV: 33.4 },
+                { TAX: 222.0, RM: 7.147, LSTAT: 5.33, DIS: 6.0622, MEDV: 36.2 },
+                { TAX: 222.0, RM: 6.430, LSTAT: 5.21, DIS: 6.0622, MEDV: 28.7 },
+                { TAX: 311.0, RM: 6.012, LSTAT: 12.43, DIS: 5.5605, MEDV: 22.9 },
+                { TAX: 311.0, RM: 6.172, LSTAT: 19.15, DIS: 5.9505, MEDV: 27.1 },
+                { TAX: 311.0, RM: 5.631, LSTAT: 29.93, DIS: 6.0821, MEDV: 16.5 },
+                { TAX: 311.0, RM: 6.004, LSTAT: 17.10, DIS: 6.5921, MEDV: 18.9 },
+                { TAX: 311.0, RM: 6.377, LSTAT: 20.45, DIS: 6.3467, MEDV: 15.0 },
+                { TAX: 311.0, RM: 6.009, LSTAT: 13.27, DIS: 6.2267, MEDV: 18.9 },
+                { TAX: 311.0, RM: 5.889, LSTAT: 15.71, DIS: 5.4509, MEDV: 21.7 },
+                { TAX: 307.0, RM: 5.949, LSTAT: 8.26, DIS: 4.7075, MEDV: 20.4 },
+                { TAX: 307.0, RM: 6.096, LSTAT: 10.26, DIS: 4.4619, MEDV: 18.2 },
+                { TAX: 307.0, RM: 5.834, LSTAT: 8.47, DIS: 4.4986, MEDV: 19.9 },
+                { TAX: 307.0, RM: 5.935, LSTAT: 6.58, DIS: 4.4986, MEDV: 23.1 },
+                { TAX: 307.0, RM: 5.990, LSTAT: 14.67, DIS: 4.2579, MEDV: 17.5 },
+                { TAX: 307.0, RM: 5.456, LSTAT: 11.69, DIS: 3.7965, MEDV: 20.2 },
+                { TAX: 307.0, RM: 5.727, LSTAT: 11.28, DIS: 3.7965, MEDV: 18.2 },
+                { TAX: 307.0, RM: 5.570, LSTAT: 21.02, DIS: 3.7979, MEDV: 13.6 },
+                { TAX: 307.0, RM: 5.965, LSTAT: 13.83, DIS: 4.0123, MEDV: 19.6 },
+                { TAX: 307.0, RM: 6.142, LSTAT: 18.72, DIS: 3.9769, MEDV: 15.2 },
+                { TAX: 307.0, RM: 5.813, LSTAT: 19.88, DIS: 4.0952, MEDV: 14.5 },
+                { TAX: 307.0, RM: 5.924, LSTAT: 16.30, DIS: 4.3996, MEDV: 15.6 },
+                { TAX: 307.0, RM: 5.599, LSTAT: 16.51, DIS: 4.4546, MEDV: 13.9 },
+                { TAX: 307.0, RM: 5.813, LSTAT: 14.81, DIS: 4.6820, MEDV: 16.6 },
+                { TAX: 307.0, RM: 6.047, LSTAT: 17.28, DIS: 4.4534, MEDV: 14.8 },
+                { TAX: 307.0, RM: 6.495, LSTAT: 12.80, DIS: 4.4547, MEDV: 18.4 },
+                { TAX: 307.0, RM: 6.674, LSTAT: 11.98, DIS: 4.2390, MEDV: 21.0 },
+                { TAX: 307.0, RM: 5.713, LSTAT: 22.60, DIS: 4.2330, MEDV: 12.7 },
+                { TAX: 307.0, RM: 6.072, LSTAT: 13.04, DIS: 4.1750, MEDV: 14.5 },
+                { TAX: 307.0, RM: 5.950, LSTAT: 27.71, DIS: 3.9900, MEDV: 13.2 },
+                { TAX: 307.0, RM: 5.701, LSTAT: 18.35, DIS: 3.7872, MEDV: 13.1 },
+                { TAX: 307.0, RM: 6.096, LSTAT: 20.34, DIS: 3.7598, MEDV: 13.5 },
+                { TAX: 279.0, RM: 5.933, LSTAT: 9.68, DIS: 3.3603, MEDV: 18.9 },
+                { TAX: 279.0, RM: 5.841, LSTAT: 11.41, DIS: 3.3779, MEDV: 20.0 },
+                { TAX: 279.0, RM: 5.850, LSTAT: 8.77, DIS: 3.9342, MEDV: 21.0 },
+                { TAX: 279.0, RM: 5.966, LSTAT: 10.13, DIS: 3.8473, MEDV: 24.7 },
+                { TAX: 252.0, RM: 6.595, LSTAT: 4.32, DIS: 5.4011, MEDV: 30.8 },
+                { TAX: 252.0, RM: 7.024, LSTAT: 1.98, DIS: 5.4011, MEDV: 34.9 },
+                { TAX: 233.0, RM: 6.770, LSTAT: 4.84, DIS: 5.7209, MEDV: 26.6 },
+                { TAX: 233.0, RM: 6.169, LSTAT: 5.81, DIS: 5.7209, MEDV: 25.3 },
+                { TAX: 233.0, RM: 6.211, LSTAT: 7.44, DIS: 5.7209, MEDV: 24.7 },
+                { TAX: 233.0, RM: 6.069, LSTAT: 9.55, DIS: 5.7209, MEDV: 21.2 },
+                { TAX: 233.0, RM: 5.682, LSTAT: 10.21, DIS: 5.1004, MEDV: 19.3 },
+                { TAX: 233.0, RM: 5.786, LSTAT: 14.15, DIS: 5.1004, MEDV: 20.0 },
+                { TAX: 233.0, RM: 6.030, LSTAT: 18.80, DIS: 5.6894, MEDV: 16.6 },
+                { TAX: 233.0, RM: 5.399, LSTAT: 30.81, DIS: 5.8700, MEDV: 14.4 },
+                { TAX: 233.0, RM: 5.602, LSTAT: 16.20, DIS: 6.0877, MEDV: 19.4 }
+            ];
+
+        // Function to transpose a matrix
+        // Function to transpose a matrix
+            function transposeMatrix(matrix) {
+                const rows = matrix.length;
+                const cols = matrix[0].length;
+                const result = [];
+
+                for (let i = 0; i < cols; i++) {
+                    result.push([]);
+                    for (let j = 0; j < rows; j++) {
+                        result[i].push(matrix[j][i]);
+                    }
+                }
+
+                return result;
+            }
+
+            // Function to multiply matrices
+            function multiplyMatrices(matrix1, matrix2) {
+                const rows1 = matrix1.length;
+                const cols1 = matrix1[0].length;
+                const rows2 = matrix2.length;
+                const cols2 = matrix2[0].length;
+
+                if (cols1 !== rows2) {
+                    throw new Error('Number of columns in the first matrix must be equal to the number of rows in the second matrix');
+                }
+
+                const result = [];
+
+                for (let i = 0; i < rows1; i++) {
+                    result.push([]);
+                    for (let j = 0; j < cols2; j++) {
+                        let sum = 0;
+                        for (let k = 0; k < cols1; k++) {
+                            sum += matrix1[i][k] * matrix2[k][j];
+                        }
+                        result[i].push(sum);
+                    }
+                }
+
+                return result;
+            }
+
+            // Function to calculate the inverse of a matrix
+           // Function to calculate the inverse of a matrix
+            // Function to calculate the inverse of a matrix
+                // Function to calculate the inverse of a matrix using Gauss-Jordan elimination
+                   function inverseMatrix(matrix) {
+                        const n = matrix.length;
+                        const identity = []; // Identity matrix
+
+                        // Initialize identity matrix
+                        for (let i = 0; i < n; i++) {
+                            identity.push([]);
+                            for (let j = 0; j < n; j++) {
+                                identity[i][j] = (i === j) ? 1 : 0;
+                            }
+                        }
+
+                        // Augment the matrix with the identity matrix
+                        for (let i = 0; i < n; i++) {
+                            matrix[i] = matrix[i].concat(identity[i]);
+                        }
+
+                        // Perform row operations to get reduced row echelon form
+                        for (let i = 0; i < n; i++) {
+                            // Make the diagonal element non-zero
+                            if (matrix[i][i] === 0) {
+                                for (let j = i + 1; j < n; j++) {
+                                    if (matrix[j][i] !== 0) {
+                                        // Swap rows i and j
+                                        const temp = matrix[i];
+                                        matrix[i] = matrix[j];
+                                        matrix[j] = temp;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // Make the diagonal element 1
+                            const divisor = matrix[i][i];
+                            for (let j = 0; j < 2 * n; j++) {
+                                matrix[i][j] /= divisor;
+                            }
+
+                            // Make the other elements in the column zero
+                            for (let j = 0; j < n; j++) {
+                                if (i !== j) {
+                                    const factor = matrix[j][i];
+                                    for (let k = 0; k < 2 * n; k++) {
+                                        matrix[j][k] -= factor * matrix[i][k];
+                                    }
+                                }
+                            }
+                        }
+
+                        // Extract the inverse matrix from the augmented matrix
+                        const inverse = [];
+                        for (let i = 0; i < n; i++) {
+                            inverse.push(matrix[i].slice(n));
+                        }
+
+                        return inverse;
+                    }
+
+
+
+
+            // Function to calculate the matrices required for multiple linear regression and the error matrix
+            function calculateMatrices(data) {
+                const X = data.map(entry => [1, entry.TAX, entry.RM, entry.LSTAT, entry.DIS]); // Assuming the first column is constant 1 for the intercept
+                const Y = data.map(entry => [entry.MEDV]);
+
+                const XT = transposeMatrix(X);
+                const XTX = multiplyMatrices(XT, X);
+                const XTX_inverse = inverseMatrix(XTX);
+                const XTY = multiplyMatrices(XT, Y);
+                const B = multiplyMatrices(XTX_inverse, XTY);
+
+                // Calculate error matrix E
+                const Y_hat = multiplyMatrices(X, B);
+                const E = [];
+                for (let i = 0; i < Y.length; i++) {
+                    E.push([Y[i][0] - Y_hat[i][0]]);
+                }
+
+                return { X, XTX, XTX_inverse, XTY, B, E };
+            }
+
+        // Call the function to calculate matrices
+        const { X, XTX, XTX_inverse, XTY, B, E } = calculateMatrices(data);
+
+        // Update HTML elements with calculated matrices and results
+        document.getElementById("matrixX").innerText = `Matrix X: ${JSON.stringify(X)}`;
+        document.getElementById("matrixXTX").innerText = `Matrix X^T * X: ${JSON.stringify(XTX)}`;
+        document.getElementById("matrixXTXInverse").innerText = `Matrix (X^T * X)^-1: ${JSON.stringify(XTX_inverse)}`;
+        document.getElementById("matrixXTY").innerText = `Matrix X^T * Y: ${JSON.stringify(XTY)}`;
+        document.getElementById("matrixB").innerText = `Matrix B: ${JSON.stringify(B)}`;
+        document.getElementById("matrixE").innerText = `Matrix E: ${JSON.stringify(E)}`;
+
+        // Display regression equation
+        const regressionEquation = `Regression Equation: Y = ${B[0]} * TAX + ${B[1]} * RM + ${B[2]} * LSTAT + ${B[3]} * DIS + ${B[4]}`;
+        document.getElementById("regressionEquation").innerText = regressionEquation;
+    </script>
+</body>
+
+</html>

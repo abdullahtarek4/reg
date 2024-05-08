@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Other meta tags and styles -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boston Housing Dataset Analysis</title>
+    
+    <!-- Your CSS styles go here -->
+    <style>
+      .regression-figure {
+    width: 100%;
+    height: 300px; /* Adjust height as needed */
+    margin-top: 20px;
+    position: relative;
+    background-color: white; /* Add a background color */
+    border: 1px solid black; /* Add a border for visibility */
+}
+
+
+
+        body {
+    background-image: url("static/dark.jpg");
+    background-size: cover;
+    background-position: center;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    position: relative; /* Ensure the body is positioned relative */
+}
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid white;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-right: 10px;
+        }
+       .regression-line {
+    width: calc(100% - 20px); /* Adjust width to account for padding */
+    height: calc(100% - 20px); /* Adjust height to account for padding */
+    position: absolute;
+    top: 10px; /* Adjust top positioning */
+    left: 10px; /* Adjust left positioning */
+    pointer-events: none;
+}
+
+.regression-equation {
+    position: absolute;
+    bottom: 10px; /* Adjust bottom positioning */
+    right: 10px; /* Adjust right positioning */
+    color: black;
+    background-color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    pointer-events: none;
+}
+        
+    </style>
+    <!-- Your JavaScript code goes here -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-statistics/7.1.1/simple_statistics.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.7.1/jstat.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Define global variables to hold dataset and regression
+        var dataset = [];
+        var regression = {};
+        var datasetLoaded = false;
+        var regressionCalculated = false;
+        var summaryShown = false;
+        var regressionLineDrawn = false;
+        var analysisVsObservedPlotted = false;
+        var residualsPlotted = false;
+
+        // Function to load dataset into the global variable
+        // Function to load dataset into the global variable
+function loadDataset() {
+    // Add functionality to load dataset and display in table
+    // For demonstration purposes, let's assume some dataset
+     dataset = [
+    { RM: 6.575, MEDV: 24 },
+    { RM: 6.421, MEDV: 21.6 },
+    { RM: 7.185, MEDV: 34.7 },
+    { RM: 6.998, MEDV: 28.3 },
+    { RM: 6.145, MEDV: 20.5 },
+    { RM: 7.521, MEDV: 36.2 },
+    { RM: 6.231, MEDV: 22.9 },
+    { RM: 6.876, MEDV: 27.1 },
+    { RM: 5.45, MEDV: 16.5 },
+    { RM: 6.112, MEDV: 18.9 },
+    { RM: 5.888, MEDV: 15 },
+    { RM: 7.54, MEDV: 32.2 },
+    { RM: 5.712, MEDV: 18.8 },
+    { RM: 6.416, MEDV: 21.7 },
+    { RM: 5.572, MEDV: 20.4 },
+    { RM: 6.195, MEDV: 20.7 },
+    { RM: 6.324, MEDV: 25 },
+    { RM: 5.757, MEDV: 17.5 },
+    { RM: 6.992, MEDV: 24.4 },
+    { RM: 6.678, MEDV: 20.2 },
+    { RM: 6.425, MEDV: 21.8 },
+    { RM: 6.163, MEDV: 22.3 },
+    { RM: 5.891, MEDV: 19.9 },
+    { RM: 6.211, MEDV: 23.1 },
+    { RM: 6.417, MEDV: 18.8 },
+    { RM: 6.749, MEDV: 21.2 },
+    { RM: 6.655, MEDV: 19.2 },
+    { RM: 6.297, MEDV: 20.4 },
+    { RM: 7.393, MEDV: 29.1 },
+    { RM: 6.728, MEDV: 19.3 },
+    { RM: 6.525, MEDV: 23.9 },
+    { RM: 5.818, MEDV: 16.8 },
+    { RM: 6.406, MEDV: 21.7 },
+    { RM: 6.229, MEDV: 22.8 },
+    { RM: 6.433, MEDV: 18.8 },
+    { RM: 6.718, MEDV: 18.7 },
+    { RM: 6.487, MEDV: 18.5 },
+    { RM: 6.438, MEDV: 18.3 },
+    { RM: 6.957, MEDV: 21.2 },
+    { RM: 8.259, MEDV: 33.4 },
+    { RM: 7.007, MEDV: 23.1 },
+    { RM: 7.079, MEDV: 23.6 },
+    { RM: 6.417, MEDV: 20.1 },
+    { RM: 6.405, MEDV: 20.6 },
+    { RM: 6.442, MEDV: 20.4 },
+    { RM: 6.211, MEDV: 19.9 },
+    { RM: 6.249, MEDV: 19.4 },
+    { RM: 6.625, MEDV: 21.7 },
+    { RM: 6.163, MEDV: 22.8 },
+    { RM: 8.069, MEDV: 34.9 },
+    { RM: 7.82, MEDV: 26.6 },
+    { RM: 7.416, MEDV: 25.3 },
+    { RM: 6.727, MEDV: 24.7 },
+    { RM: 6.781, MEDV: 21.2 },
+    { RM: 6.405, MEDV: 19.3 },
+    { RM: 6.137, MEDV: 20 },
+    { RM: 6.167, MEDV: 16.6 },
+    { RM: 5.851, MEDV: 14.8 },
+    { RM: 5.836, MEDV: 18.4 },
+    { RM: 6.127, MEDV: 21 },
+    { RM: 6.474, MEDV: 12.7 },
+    { RM: 6.229, MEDV: 14.5 },
+    { RM: 6.195, MEDV: 13.2 },
+    { RM: 6.715, MEDV: 18.2 },
+    { RM: 5.913, MEDV: 19.6 },
+    { RM: 6.092, MEDV: 15.2 },
+    { RM: 6.254, MEDV: 14.5 },
+    { RM: 5.928, MEDV: 15.6 },
+    { RM: 6.176, MEDV: 13.9 },
+    { RM: 6.021, MEDV: 16.6 },
+    { RM: 5.872, MEDV: 14.8 },
+    { RM: 5.731, MEDV: 18.4 },
+    { RM: 5.87, MEDV: 21 },
+    { RM: 6.004, MEDV: 12.7 },
+    { RM: 5.961, MEDV: 14.5 },
+    { RM: 5.856, MEDV: 13.2 },
+    { RM: 5.879, MEDV: 18.2 },
+    { RM: 5.986, MEDV: 19.6 },
+    { RM: 5.613, MEDV: 15.2 },
+    { RM: 5.693, MEDV: 14.5 },
+    { RM: 6.431, MEDV: 15.6 },
+    { RM: 5.637, MEDV: 13.9 },
+    { RM: 6.458, MEDV: 16.6 },
+    { RM: 6.326, MEDV: 14.8 },
+    { RM: 6.372, MEDV: 21 },
+    { RM: 5.822, MEDV: 12.7 },
+    { RM: 6.565, MEDV: 14.5 },
+    { RM: 6.861, MEDV: 13.2 },
+    { RM: 7.148, MEDV: 18.2 },
+    { RM: 6.63, MEDV: 19.6 },
+    { RM: 6.127, MEDV: 15.2 },
+    { RM: 6.009, MEDV: 14.5 },
+    { RM: 6.678, MEDV: 15.6 },
+    { RM: 6.549, MEDV: 13.9 },
+    { RM: 5.79, MEDV: 16.6 },
+    { RM: 6.345, MEDV: 14.8 },
+    { RM: 6.152, MEDV: 21 },
+    { RM: 6.103, MEDV: 12.7 },
+    { RM: 6.663, MEDV: 14.5 },
+    { RM: 5.877, MEDV: 13.2 },
+    { RM: 6.48, MEDV: 18.2 },
+    { RM: 6.243, MEDV: 19.6 },
+    { RM: 6.189, MEDV: 15.2 },
+    { RM: 6.97, MEDV: 14.5 },
+    { RM: 6.54, MEDV: 15.6 },
+    { RM: 6.696, MEDV: 13.9 },
+    { RM: 5.794, MEDV: 16.6 },
+    { RM: 6.03, MEDV: 14.8 },
+    { RM: 6.317, MEDV: 21 },
+    { RM: 5.755, MEDV: 12.7 },
+    { RM: 5.856, MEDV: 14.5 },
+    { RM: 5.854, MEDV: 13.2 },
+    { RM: 6.101, MEDV: 18.2 },
+    { RM: 6.115, MEDV: 19.6 },
+    { RM: 5.683, MEDV: 15.2 },
+    { RM: 5.868, MEDV: 14.5 },
+    { RM: 6.14, MEDV: 15.6 },
+    { RM: 6.232, MEDV: 13.9 },
+    { RM: 6.174, MEDV: 16.6 },
+    { RM: 6.115, MEDV: 14.8 },
+    { RM: 6.02, MEDV: 21 },
+    { RM: 6.484, MEDV: 12.7 },
+    { RM: 5.304, MEDV: 14.5 },
+    { RM: 6.185, MEDV: 13.2 },
+    { RM: 6.229, MEDV: 18.2 },
+    { RM: 6.242, MEDV: 19.6 },
+    { RM: 6.75, MEDV: 15.2 },
+    { RM: 7.061, MEDV: 14.5 },
+    { RM: 5.762, MEDV: 15.6 },
+    { RM: 5.871, MEDV: 13.9 },
+    { RM: 6.312, MEDV: 16.6 },
+    { RM: 6.114, MEDV: 14.8 },
+    { RM: 5.905, MEDV: 21 },
+    { RM: 5.454, MEDV: 12.7 },
+    { RM: 5.414, MEDV: 14.5 },
+    { RM: 5.093, MEDV: 13.2 },
+    { RM: 5.983, MEDV: 18.2 },
+    { RM: 5.983, MEDV: 19.6 },
+    { RM: 5.707, MEDV: 15.2 },
+    { RM: 5.926, MEDV: 14.5 },
+    { RM: 5.67, MEDV: 15.6 },
+    { RM: 5.39, MEDV: 13.9 },
+    { RM: 5.794, MEDV: 16.6 },
+    { RM: 6.019, MEDV: 14.8 },
+    { RM: 5.569, MEDV: 21 },
+    { RM: 6.027, MEDV: 12.7 },
+    { RM: 6.593, MEDV: 14.5 },
+    { RM: 6.12, MEDV: 13.2 },
+    { RM: 6.976, MEDV: 18.2 },
+    { RM: 6.794, MEDV: 19.6 },
+    { RM: 6.03, MEDV: 15.2 },
+    { RM: 5.707, MEDV: 14.5 },
+    { RM: 6.072, MEDV: 15.6 },
+    { RM: 5.95, MEDV: 13.9 },
+    { RM: 6.405, MEDV: 16.6 },
+    { RM: 5.454, MEDV: 14.8 },
+    { RM: 6.772, MEDV: 21 },
+    { RM: 6.715, MEDV: 12.7 },
+    { RM: 6.286, MEDV: 14.5 },
+    { RM: 6.279, MEDV: 13.2 },
+    { RM: 6.14, MEDV: 18.2 },
+    { RM: 6.232, MEDV: 19.6 },
+    { RM: 5.874, MEDV: 15.2 },
+    { RM: 6.727, MEDV: 14.5 },
+    { RM: 5.987, MEDV: 15.6 },
+    { RM: 5.713, MEDV: 13.9 },
+    { RM: 6.072, MEDV: 16.6 },
+    { RM: 5.95, MEDV: 14.8 },
+    { RM: 5.701, MEDV: 21 },
+    { RM: 6.096, MEDV: 12.7 },
+    { RM: 5.933, MEDV: 14.5 },
+    { RM: 5.841, MEDV: 13.2 },
+    { RM: 6.59, MEDV: 18.2 },
+    { RM: 6.495, MEDV: 19.6 },
+    { RM: 5.972, MEDV: 15.2 },
+    { RM: 4.973, MEDV: 14.5 },
+    { RM: 6.122, MEDV: 15.6 },
+    { RM: 6.023, MEDV: 13.9 },
+    { RM: 6.266, MEDV: 16.6 },
+    { RM: 5.905, MEDV: 14.8 },
+    { RM: 6.13, MEDV: 21 },
+    { RM: 6.453, MEDV: 12.7 },
+    { RM: 5.683, MEDV: 14.5 },
+    { RM: 6.064, MEDV: 13.2 },
+    { RM: 5.344, MEDV: 18.2 },
+    { RM: 5.96, MEDV: 19.6 },
+    { RM: 5.404, MEDV: 15.2 },
+    { RM: 5.807, MEDV: 14.5 },
+    { RM: 6.375, MEDV: 15.6 },
+    { RM: 5.412, MEDV: 13.9 },
+    { RM: 6.182, MEDV: 16.6 },
+    { RM: 5.888, MEDV: 14.8 },
+    { RM: 6.642, MEDV: 21 },
+    { RM: 5.951, MEDV: 12.7 },
+    { RM: 6.373, MEDV: 14.5 },
+    { RM: 6.951, MEDV: 13.2 },
+    { RM: 6.164, MEDV: 18.2 },
+    { RM: 6.879, MEDV: 19.6 },
+    { RM: 6.618, MEDV: 15.2 },
+    { RM: 8.266, MEDV: 14.5 },
+    { RM: 8.725, MEDV: 15.6 },
+    { RM: 8.04, MEDV: 13.9 },
+    { RM: 7.163, MEDV: 16.6 },
+    { RM: 7.686, MEDV: 14.8 },
+    { RM: 6.552, MEDV: 21 },
+    { RM: 5.981, MEDV: 12.7 },
+    { RM: 7.412, MEDV: 14.5 },
+    { RM: 8.337, MEDV: 13.2 },
+    { RM: 8.247, MEDV: 18.2 },
+    { RM: 6.726, MEDV: 19.6 },
+    { RM: 6.086, MEDV: 15.2 },
+    { RM: 6.631, MEDV: 14.5 },
+    { RM: 7.358, MEDV: 15.6 },
+    { RM: 6.481, MEDV: 13.9 },
+    { RM: 6.606, MEDV: 16.6 },
+    { RM: 6.897, MEDV: 14.8 },
+    { RM: 6.081, MEDV: 21 },
+    { RM: 6.657, MEDV: 12.7 },
+    { RM: 6.552, MEDV: 14.5 },
+    { RM: 6.951, MEDV: 13.2 },
+    { RM: 6.739, MEDV: 18.2 },
+    { RM: 6.335, MEDV: 19.6 },
+    { RM: 5.829, MEDV: 15.2 },
+    { RM: 5.569, MEDV: 14.5 },
+    { RM: 6.109, MEDV: 15.6 },
+    { RM: 6.51, MEDV: 13.9 },
+    { RM: 6.229, MEDV: 16.6 },
+    { RM: 6.175, MEDV: 14.8 },
+    { RM: 6.85, MEDV: 21 },
+    { RM: 6.229, MEDV: 12.7 },
+    { RM: 6.715, MEDV: 14.5 },
+    { RM: 6.318, MEDV: 13.2 },
+    { RM: 6.852, MEDV: 18.2 },
+    { RM: 6.657, MEDV: 19.6 },
+    { RM: 6.429, MEDV: 15.2 },
+    { RM: 6.939, MEDV: 14.5 },
+    { RM: 6.49, MEDV: 15.6 },
+    { RM: 6.635, MEDV: 13.9 },
+    { RM: 5.972, MEDV: 16.6 },
+    { RM: 6.03, MEDV: 14.8 },
+    { RM: 5.877, MEDV: 21 },
+    { RM: 6.472, MEDV: 12.7 },
+    { RM: 6.236, MEDV: 14.5 },
+    { RM: 5.66, MEDV: 13.2 },
+    { RM: 6.484, MEDV: 18.2 },
+    { RM: 5.303, MEDV: 19.6 },
+    { RM: 6.185, MEDV: 15.2 },
+    { RM: 6.229, MEDV: 14.5 },
+    { RM: 5.715, MEDV: 15.6 },
+    { RM: 5.672, MEDV: 13.9 },
+    { RM: 5.781, MEDV: 16.6 },
+    { RM: 6.405, MEDV: 14.8 },
+    { RM: 5.949, MEDV: 21 },
+    { RM: 6.096, MEDV: 12.7 },
+    { RM: 5.834, MEDV: 14.5 },
+    { RM: 6.782, MEDV: 13.2 },
+    { RM: 5.304, MEDV: 18.2 },
+    { RM: 6.975, MEDV: 19.6 },
+    { RM: 6.635, MEDV: 15.2 },
+    { RM: 6.939, MEDV: 14.5 },
+    { RM: 6.49, MEDV: 15.6 },
+    { RM: 6.635, MEDV: 13.9 },
+    { RM: 6.437, MEDV: 16.6 },
+    { RM: 6.982, MEDV: 14.8 },
+    { RM: 6.404, MEDV: 21 },
+    { RM: 5.349, MEDV: 12.7 },
+    { RM: 5.531, MEDV: 14.5 },
+    { RM: 5.683, MEDV: 13.2 },
+    { RM: 5.608, MEDV: 18.2 },
+    { RM: 5.617, MEDV: 19.6 },
+    { RM: 5.972, MEDV: 15.2 },
+];
+
+    var datasetTable = "<tr><th>RM</th><th>MEDV</th></tr>";
+
+    // Iterate over the dataset and add each row to the table
+    dataset.forEach(function(row) {
+        datasetTable += "<tr><td>" + row.RM + "</td><td>" + row.MEDV + "</td></tr>";
+    });
+
+    // Display the table in the designated container
+    document.getElementById("datasetTable").innerHTML = datasetTable;
+
+    // Set the datasetLoaded flag to true
+    datasetLoaded = true;
+}
+
+
+        // Function to calculate regression coefficients
+// Function to calculate regression coefficients based on the loaded dataset
+function calculateRegression() {
+    if (dataset.length === 0) {
+        alert("Please load the dataset first.");
+        return;
+    }
+
+    var n = dataset.length;
+    var sumX = 0;
+    var sumY = 0;
+    var sumXY = 0;
+    var sumX2 = 0;
+
+    // Calculate sums
+    for (var i = 0; i < n; i++) {
+        var dataPoint = dataset[i];
+        sumX += dataPoint.RM;
+        sumY += dataPoint.MEDV;
+        sumXY += dataPoint.RM * dataPoint.MEDV;
+        sumX2 += Math.pow(dataPoint.RM, 2);
+    }
+
+    // Calculate coefficients
+    var xMean = sumX / n;
+    var yMean = sumY / n;
+    var b1 = (sumXY - (n * xMean * yMean)) / (sumX2 - (n * Math.pow(xMean, 2)));
+    var b0 = yMean - b1 * xMean;
+
+    // Store coefficients
+    regression.b = b0;
+    regression.m = b1;
+
+    // Display the computed coefficients
+    var regressionCoefficientsTable = document.getElementById("regressionCoefficients");
+    regressionCoefficientsTable.innerHTML = "<tr><th>B0^ (Intercept)</th><th>B1^ (Slope)</th></tr><tr><td>" + b0.toFixed(2) + "</td><td>" + b1.toFixed(2) + "</td></tr>";
+
+    regressionCalculated = true;
+}
+
+
+// Function to draw the regression line in a separate figure with x and y axes
+// Define the SVG and regression line globally
+var svg;
+var regressionLine;
+
+// Function to draw the regression line in a separate figure with x and y axes
+function drawRegressionLine() {
+    // Check if regression has been calculated
+    if (!regressionCalculated) {
+        alert("Please calculate regression first.");
+        return;
+    }
+
+    var b = regression.b; // y-intercept
+    var m = regression.m; // slope
+
+    // Find minimum and maximum X values from the dataset
+    var minX = Number.MAX_VALUE;
+    var maxX = Number.MIN_VALUE;
+    for (var i = 0; i < dataset.length; i++) {
+        if (dataset[i].RM < minX) minX = dataset[i].RM;
+        if (dataset[i].RM > maxX) maxX = dataset[i].RM;
+    }
+
+    // Get the container element for the figure
+    var figureContainer = document.getElementById("regressionFigure");
+
+    // Remove any existing SVG element
+    var svg = figureContainer.querySelector("svg");
+    if (svg) {
+        figureContainer.removeChild(svg);
+    }
+
+    // Create a new SVG element
+    svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
+    svg.setAttribute("viewBox", "0 0 500 300");
+
+    // Append the SVG element to the container
+    figureContainer.appendChild(svg);
+
+    // Draw x-axis
+    var xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    xAxis.setAttribute("x1", "50");
+    xAxis.setAttribute("y1", "250");
+    xAxis.setAttribute("x2", "450");
+    xAxis.setAttribute("y2", "250");
+    xAxis.setAttribute("style", "stroke:black;stroke-width:1");
+    svg.appendChild(xAxis);
+
+    // Draw y-axis
+    var yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    yAxis.setAttribute("x1", "50");
+    yAxis.setAttribute("y1", "250");
+    yAxis.setAttribute("x2", "50");
+    yAxis.setAttribute("y2", "50");
+    yAxis.setAttribute("style", "stroke:black;stroke-width:1");
+    svg.appendChild(yAxis);
+
+    // Draw negative x-axis
+    var negXAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    negXAxis.setAttribute("x1", "50");
+    negXAxis.setAttribute("y1", "250");
+    negXAxis.setAttribute("x2", "0");
+    negXAxis.setAttribute("y2", "250");
+    negXAxis.setAttribute("style", "stroke:black;stroke-width:1");
+    svg.appendChild(negXAxis);
+
+    // Draw negative y-axis
+    var negYAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    negYAxis.setAttribute("x1", "50");
+    negYAxis.setAttribute("y1", "250");
+    negYAxis.setAttribute("x2", "50");
+    negYAxis.setAttribute("y2", "300");
+    negYAxis.setAttribute("style", "stroke:black;stroke-width:1");
+    svg.appendChild(negYAxis);
+
+    // Add axis labels for positive x-axis
+    var xAxisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    xAxisLabel.setAttribute("x", "450");
+    xAxisLabel.setAttribute("y", "265");
+    xAxisLabel.setAttribute("alignment-baseline", "middle");
+    xAxisLabel.textContent = "RM";
+    svg.appendChild(xAxisLabel);
+
+    // Add axis labels for negative x-axis
+    var negXAxisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    negXAxisLabel.setAttribute("x", "0");
+    negXAxisLabel.setAttribute("y", "265");
+    negXAxisLabel.setAttribute("alignment-baseline", "middle");
+    negXAxisLabel.textContent = "-RM";
+    svg.appendChild(negXAxisLabel);
+
+    // Add axis labels for positive y-axis
+    var yAxisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    yAxisLabel.setAttribute("x", "-20");
+    yAxisLabel.setAttribute("y", "50");
+    yAxisLabel.setAttribute("alignment-baseline", "middle");
+    yAxisLabel.textContent = "MEDV";
+    svg.appendChild(yAxisLabel);
+
+    // Add axis labels for negative y-axis
+    var negYAxisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    negYAxisLabel.setAttribute("x", "-20");
+    negYAxisLabel.setAttribute("y", "290");
+    negYAxisLabel.setAttribute("alignment-baseline", "middle");
+    negYAxisLabel.textContent = "-MEDV";
+    svg.appendChild(negYAxisLabel);
+
+    // Draw the regression line
+    var regressionLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    regressionLine.setAttribute("x1", (minX - minX) * 3); // Adjust X position relative to minX
+    regressionLine.setAttribute("y1", 250 - ((b + m * minX) * 3)); // Adjust Y position relative to minY
+    regressionLine.setAttribute("x2", (maxX - minX) * 50); // Adjust X position relative to minX
+    regressionLine.setAttribute("y2", 250 - ((b + m * maxX) * 3)); // Adjust Y position relative to minY
+    regressionLine.setAttribute("style", "stroke:red;stroke-width:1");
+    svg.appendChild(regressionLine);
+
+    // Display the equation of the line (optional)
+    var regressionEquation = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    regressionEquation.setAttribute("x", (maxX - minX) * 100); // Adjust X position relative to minX
+    regressionEquation.setAttribute("y", 250 - ((b + m * maxX) * 9) - 5); // Adjust Y position relative to minY
+    regressionEquation.setAttribute("alignment-baseline", "middle");
+    regressionEquation.textContent = "y = " + b.toFixed(2) + " + " + m.toFixed(2) + " * x";
+    svg.appendChild(regressionEquation);
+}
+
+
+
+
+function calculateMean(property) {
+    if (dataset.length === 0) {
+        return 0;
+    }
+
+    var sum = 0;
+    for (var i = 0; i < dataset.length; i++) {
+        sum += dataset[i][property];
+    }
+    return sum / dataset.length;
+}
+
+function calculateStandardDeviation(property) {
+    if (dataset.length === 0) {
+        return 0;
+    }
+
+    var mean = calculateMean(property);
+    var sumSquaredDiff = 0;
+    for (var i = 0; i < dataset.length; i++) {
+        sumSquaredDiff += Math.pow(dataset[i][property] - mean, 2);
+    }
+    var variance = sumSquaredDiff / dataset.length;
+    return Math.sqrt(variance);
+}
+
+function calculateMin(property) {
+    if (dataset.length === 0) {
+        return 0;
+    }
+
+    var min = dataset[0][property];
+    for (var i = 1; i < dataset.length; i++) {
+        if (dataset[i][property] < min) {
+            min = dataset[i][property];
+        }
+    }
+    return min;
+}
+
+function calculateMax(property) {
+    if (dataset.length === 0) {
+        return 0;
+    }
+
+    var max = dataset[0][property];
+    for (var i = 1; i < dataset.length; i++) {
+        if (dataset[i][property] > max) {
+            max = dataset[i][property];
+        }
+    }
+    return max;
+}
+
+
+        // Function to show summary statistics
+        function showSummaryStatistics() {
+    if (dataset.length === 0) {
+        alert("Please load the dataset first.");
+        return;
+    }
+
+    var meanRM = calculateMean("RM");
+    var meanMEDV = calculateMean("MEDV");
+    var stdDevRM = calculateStandardDeviation("RM");
+    var stdDevMEDV = calculateStandardDeviation("MEDV");
+    var minRM = calculateMin("RM");
+    var minMEDV = calculateMin("MEDV");
+    var maxRM = calculateMax("RM");
+    var maxMEDV = calculateMax("MEDV");
+
+    var summaryStatistics = [
+        { Statistic: "Mean", RM: meanRM, MEDV: meanMEDV },
+        { Statistic: "Standard Deviation", RM: stdDevRM, MEDV: stdDevMEDV },
+        { Statistic: "Minimum", RM: minRM, MEDV: minMEDV },
+        { Statistic: "Maximum", RM: maxRM, MEDV: maxMEDV },
+        // Add more summary statistics as needed
+    ];
+
+    var summaryTable = "<tr><th>Statistic</th><th>RM</th><th>MEDV</th></tr>";
+    summaryStatistics.forEach(function(row) {
+        summaryTable += "<tr><td>" + row.Statistic + "</td><td>" + row.RM.toFixed(2) + "</td><td>" + row.MEDV.toFixed(2) + "</td></tr>";
+    });
+    document.getElementById("summaryTable").innerHTML = summaryTable;
+}
+
+
+
+        // Function to show residuals of the model
+       function showResiduals() {
+    // Check if regression has been calculated
+    if (!regressionCalculated) {
+        alert("Please calculate regression first.");
+        return;
+    }
+
+    // Calculate residuals
+    var residuals = [];
+    for (var i = 0; i < dataset.length; i++) {
+        var predicted = regression.b + regression.m * dataset[i].RM;
+        var residual = dataset[i].MEDV - predicted;
+        residuals.push(residual);
+    }
+
+    // Display residuals in a table
+    var residualsTable = "<tr><th>Residuals</th></tr>";
+    residuals.forEach(function(residual) {
+        residualsTable += "<tr><td>" + residual.toFixed(2) + "</td></tr>";
+    });
+    document.getElementById("residualsTable").innerHTML = residualsTable;
+}
+
+
+        // Function to show fitted values
+       function showFittedValues() {
+    // Check if regression has been calculated
+    if (!regressionCalculated) {
+        alert("Please calculate regression first.");
+        return;
+    }
+
+    // Calculate fitted values
+    var fittedValues = [];
+    for (var i = 0; i < dataset.length; i++) {
+        var fittedValue = regression.b + regression.m * dataset[i].RM;
+        fittedValues.push(fittedValue);
+    }
+
+    // Display fitted values in a table
+    var fittedValuesTable = "<tr><th>Fitted Values</th></tr>";
+    fittedValues.forEach(function(value) {
+        fittedValuesTable += "<tr><td>" + value.toFixed(2) + "</td></tr>";
+    });
+    document.getElementById("fittedValuesTable").innerHTML = fittedValuesTable;
+}
+
+
+        // Function to draw regression line
+        // Function to draw regression line
+// Function to draw regression line
+// Function to draw regression line
+
+
+
+
+
+
+
+        // Function to show ANOVA table
+        function showANOVA() {
+            // Add functionality to compute ANOVA and display in table
+            // For demonstration purposes, let's assume some ANOVA results
+            var anovaResults = [
+                { Source: "Model", DF: 1, SS: 50, MS: 25, F: 5, P: 0.05 },
+                { Source: "Error", DF: 10, SS: 40, MS: 4, F: "", P: "" },
+                { Source: "Total", DF: 11, SS: 90, MS: "", F: "", P: "" }
+            ];
+            var anovaTable = "<tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>P</th></tr>";
+            anovaResults.forEach(function(row) {
+                anovaTable += "<tr><td>" + row.Source + "</td><td>" + row.DF + "</td><td>" + row.SS + "</td><td>" + row.MS + "</td><td>" + row.F + "</td><td>" + row.P + "</td></tr>";
+            });
+            document.getElementById("anovaTable").innerHTML = anovaTable;
+        }
+
+        // Function to plot analysis value vs. observed value
+        // Function to plot analysis value vs. observed value
+// Function to plot analysis value vs. observed value
+function plotAnalysisVsObserved() {
+    // Check if dataset is loaded
+    if (!datasetLoaded) {
+        alert("Please load the dataset first.");
+        return;
+    }
+
+    // Initialize empty array to hold combined data
+    var combinedData = [];
+
+    // Iterate over dataset to create combined data array
+    dataset.forEach(function(dataPoint) {
+        combinedData.push({
+            x: dataPoint.RM, // RM value as x-axis
+            y: dataPoint.MEDV // MEDV value as y-axis
+        });
+    });
+
+    // Initialize Chart.js scatter plot configuration
+    var scatterPlotConfig = {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'RM vs. MEDV',
+                data: combinedData,
+                backgroundColor: 'rgba(1000, 80, 120, 0.8)', // Adjust the alpha (transparency) value to make it brighter
+                borderColor: 'rgba(999, 99, 132, 1)', // Adjust the alpha (transparency) value to make it brighter
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'RM'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'MEDV'
+                    }
+                }
+            }
+        }
+    };
+
+    // Get canvas element
+    var scatterPlotCanvas = document.getElementById('scatterPlotCanvas').getContext('2d');
+
+    // Draw scatter plot using Chart.js
+    new Chart(scatterPlotCanvas, scatterPlotConfig);
+
+    // Set analysisVsObservedPlotted flag to true
+
+    // Create the table for analysis vs. observed values
+    var analysisVsObservedTable = "<table><tr><th>Analysis Value (RM)</th><th>Observed Value (MEDV)</th></tr>";
+    combinedData.forEach(function(data) {
+        analysisVsObservedTable += "<tr><td>" + data.x + "</td><td>" + data.y + "</td></tr>";
+    });
+    analysisVsObservedTable += "</table>";
+
+    // Append the table to the container
+    document.getElementById("analysisVsObservedTable").innerHTML = analysisVsObservedTable;
+}
+
+
+
+        // Function to plot residuals
+        function plotResiduals() {
+    // Check if dataset is loaded
+    if (!datasetLoaded) {
+        alert("Please load the dataset first.");
+        return;
+    }
+
+    // Define residuals data (for demonstration purposes)
+    var residualsData = [
+        { Index: 1, Residual: 0.5 },
+        { Index: 2, Residual: -0.7 },
+        // Add more residual data as needed
+    ];
+
+    // Create SVG element for the graph
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("width", 400); // Adjust width as needed
+    svg.setAttribute("height", 200); // Adjust height as needed
+
+    // Define axes
+    var xAxis = document.createElementNS(svgNS, "line");
+    xAxis.setAttribute("x1", 50);
+    xAxis.setAttribute("y1", 150);
+    xAxis.setAttribute("x2", 350);
+    xAxis.setAttribute("y2", 150);
+    xAxis.setAttribute("stroke", "red");
+    svg.appendChild(xAxis);
+
+    var yAxis = document.createElementNS(svgNS, "line");
+    yAxis.setAttribute("x1", 50);
+    yAxis.setAttribute("y1", 20);
+    yAxis.setAttribute("x2", 50);
+    yAxis.setAttribute("y2", 150);
+    yAxis.setAttribute("stroke", "red");
+    svg.appendChild(yAxis);
+
+    // Plot residuals as a line graph
+    var line = document.createElementNS(svgNS, "polyline");
+    var points = "";
+    for (var i = 0; i < residualsData.length; i++) {
+        var x = 50 + i * (300 / (residualsData.length - 1));
+        var y = 150 - residualsData[i].Residual * 50; // Scale the y-coordinate
+        points += x + "," + y + " ";
+    }
+    line.setAttribute("points", points);
+    line.setAttribute("fill", "none");
+    line.setAttribute("stroke", "blue");
+    svg.appendChild(line);
+
+    // Append SVG element to the container
+    var residualsFigure = document.getElementById("residualsFigure");
+    residualsFigure.innerHTML = ""; // Clear previous content
+    residualsFigure.appendChild(svg);
+
+    // Set residualsPlotted flag to true
+    residualsPlotted = true;
+}
+
+
+        // Function to show confidence interval of Bo and B1
+        function showConfidenceIntervalBoB1() {
+    // Check if the regression has been calculated
+    if (!regressionCalculated) {
+        alert("Please calculate the regression coefficients first.");
+        return;
+    }
+
+    // Calculate mean of RM values
+    var sumRM = 0;
+    for (var k = 0; k < dataset.length; k++) {
+        sumRM += dataset[k].RM;
+    }
+    var meanRM = sumRM / dataset.length;
+
+    // Calculate sum of squared RM values
+    var sumX2 = 0;
+    for (var l = 0; l < dataset.length; l++) {
+        sumX2 += Math.pow(dataset[l].RM - meanRM, 2);
+    }
+
+    // Add functionality to compute confidence interval of Bo and B1 and display in table
+    var confLevel = parseFloat(prompt("Enter confidence level (e.g., 0.95):"));
+
+    if (isNaN(confLevel) || confLevel <= 0 || confLevel >= 1) {
+        alert("Please enter a valid confidence level between 0 and 1.");
+        return;
+    }
+
+    // Calculate residuals
+    var residuals = [];
+    for (var i = 0; i < dataset.length; i++) {
+        var dataPoint = dataset[i];
+        var observed = dataPoint.MEDV;
+        var predicted = regression.b + regression.m * dataPoint.RM;
+        var residual = observed - predicted;
+        residuals.push(residual);
+    }
+
+    // Calculate standard errors of Bo and B1
+    var sumSquaredResiduals = 0;
+    for (var j = 0; j < residuals.length; j++) {
+        sumSquaredResiduals += Math.pow(residuals[j], 2);
+    }
+    var standardErrorBo = Math.sqrt((sumSquaredResiduals / (dataset.length - 2)) * ((1 / dataset.length) + (Math.pow(dataset[0].RM - meanRM, 2) / sumX2)));
+    var standardErrorB1 = Math.sqrt(sumSquaredResiduals / (dataset.length - 2) / sumX2);
+
+    // Calculate confidence intervals for Bo and B1
+    var zValue = jStat.normal.inv(1 - (1 - confLevel) / 2, 0, 1);
+    var confidenceIntervalBo = [regression.b - zValue * standardErrorBo, regression.b + zValue * standardErrorBo];
+    var confidenceIntervalB1 = [regression.m - zValue * standardErrorB1, regression.m + zValue * standardErrorB1];
+
+    // Construct the HTML table for confidence intervals
+    var confidenceIntervalTable = "<tr><th>Parameter</th><th>Confidence Interval</th></tr>";
+    confidenceIntervalTable += "<tr><td>Bo</td><td>(" + confidenceIntervalBo[0].toFixed(2) + ", " + confidenceIntervalBo[1].toFixed(2) + ")</td></tr>";
+    confidenceIntervalTable += "<tr><td>B1</td><td>(" + confidenceIntervalB1[0].toFixed(2) + ", " + confidenceIntervalB1[1].toFixed(2) + ")</td></tr>";
+
+    // Display the confidence intervals in the table
+    document.getElementById("confidenceIntervalBoB1Table").innerHTML = confidenceIntervalTable;
+}
+
+
+
+        // Function to show confidence interval for fitted values
+        function showConfidenceIntervalFittedValues() {
+            if (!regressionCalculated) {
+        alert("Please calculate the regression coefficients first.");
+        return;
+    }
+    // Get the confidence level from the user
+    var confLevel = prompt("Enter confidence level (e.g., 0.95):");
+    
+    // Check if the user provided a valid confidence level
+    if (confLevel === null || isNaN(parseFloat(confLevel)) || parseFloat(confLevel) <= 0 || parseFloat(confLevel) >= 1) {
+        alert("Please enter a valid confidence level between 0 and 1.");
+        return;
+    }
+    
+    // Convert confidence level to a critical value (z-score for normal distribution)
+    var z = jStat.normal.inv(1 - (1 - parseFloat(confLevel)) / 2, 0, 1);
+
+    // For demonstration purposes, let's assume some data
+    var fittedValues = [20, 22, 25, 28]; // Example fitted values
+    var standardError = 2; // Example standard error
+    
+    // Calculate margin of error
+    var marginOfError = z * standardError;
+
+    // Calculate confidence interval
+    var lowerBound = fittedValues.map(value => value - marginOfError);
+    var upperBound = fittedValues.map(value => value + marginOfError);
+
+    // Generate confidence interval table
+    var confidenceIntervalTable = "<tr><th>Fitted Values</th><th>Lower Bound</th><th>Upper Bound</th></tr>";
+    for (var i = 0; i < fittedValues.length; i++) {
+        confidenceIntervalTable += "<tr><td>" + fittedValues[i].toFixed(2) + "</td><td>" + lowerBound[i].toFixed(2) + "</td><td>" + upperBound[i].toFixed(2) + "</td></tr>";
+    }
+
+    // Display confidence interval table
+    document.getElementById("confidenceIntervalFittedValuesTable").innerHTML = confidenceIntervalTable;
+}
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Load Dataset Button -->
+         <button class="button" onclick="loadDataset()">Load Dataset</button>
+
+        <!-- Calculate Regression Coefficients Button -->
+        <button class="button" onclick="calculateRegression()">Calculate Regression Coefficients</button>
+
+        <!-- Summary Statistics Button -->
+        <button class="button" onclick="showSummaryStatistics()">Summary Statistics</button>
+
+        <!-- Residuals of Model Button -->
+        <button class="button" onclick="showResiduals()">Residuals of Model</button>
+
+        <!-- Fitted Values Button -->
+        <button class="button" onclick="showFittedValues()">Fitted Values</button>
+
+        <!-- Draw Regression Line Button -->
+        <button class="button" onclick="drawRegressionLine()">Draw Regression Line</button>
+
+        <!-- Analysis of Variance Table Button -->
+        <button class="button" onclick="showANOVA()">Analysis of Variance Table</button>
+
+        <!-- Plot Analysis Value vs. Observed Value Button -->
+        <button class="button" onclick="plotAnalysisVsObserved()">Plot Analysis Value vs. Observed Value</button>
+
+        <!-- Plot Residuals Button -->
+        <button class="button" onclick="plotResiduals()">Plot Residuals</button>
+
+        <!-- Confidence Interval of Bo and B1 Button -->
+        <button class="button" onclick="showConfidenceIntervalBoB1()">Confidence Interval of Bo and B1</button>
+
+        <!-- Confidence Interval for Fitted Values Button -->
+        <button class="button" onclick="showConfidenceIntervalFittedValues()">Confidence Interval for Fitted Values</button>
+
+        <!-- Output elements for displaying results -->
+        <table id="datasetTable"></table>
+        <table id="regressionCoefficients"></table>
+        <div id="coefficients"></div>
+        <table id="summaryTable"></table>
+        <table id="residualsTable"></table>
+        <table id="fittedValuesTable"></table>
+        <table id="regressionLineTable"></table>
+        <div id="regressionLineEquation"></div>
+        <table id="analysisVsObservedTable"></table>
+        <table id="anovaTable"></table>
+        <table id="plotAnalysisTable"></table>
+        <table id="plotResidualsTable"></table>
+        <div id="residualsFigure"></div>
+        <table id="confidenceIntervalBoB1Table"></table>
+        <table id="confidenceIntervalFittedValuesTable"></table>
+        <div class="regression-line" id="regressionLine"></div>
+        <div class="scatter-plot-container" style="width: 600px; height: 400px;">
+            <canvas id="scatterPlotCanvas"></canvas>
+            </div>
+         <div class="regression-figure" id="regressionFigure">
+    <svg width="100%" height="100%" id="regressionSVG" viewBox="0 0 500 300">
+        <!-- Draw x-axis -->
+        <line x1="50" y1="250" x2="450" y2="250" style="stroke:black;stroke-width:1"/>
+        <!-- Draw y-axis -->
+        <line x1="50" y1="250" x2="50" y2="50" style="stroke:black;stroke-width:1"/>
+        <!-- Draw negative x-axis -->
+        <line x1="50" y1="250" x2="0" y2="250" style="stroke:black;stroke-width:1"/>
+        <!-- Draw negative y-axis -->
+        <line x1="50" y1="250" x2="50" y2="300" style="stroke:black;stroke-width:1"/>
+
+        <!-- Add axis labels for positive x-axis -->
+        <text x="450" y="265" alignment-baseline="middle">RM</text>
+        <!-- Add axis labels for negative x-axis -->
+        <text x="0" y="265" alignment-baseline="middle">-RM</text>
+        <!-- Add axis labels for positive y-axis -->
+        <text x="30" y="50" alignment-baseline="middle">MEDV</text>
+        <!-- Add axis labels for negative y-axis -->
+        <text x="30" y="290" alignment-baseline="middle">-MEDV</text>
+
+        <!-- Regression line will be drawn dynamically -->
+        <line id="regressionLine" style="stroke:black;stroke-width:1"/>
+        <!-- Equation of the regression line -->
+        <text id="regressionEquation" alignment-baseline="middle"/>
+    </svg>
+</div>
+
+
+
+
+
+
+
+
+    </div>
+
+
+
+</body>
+</html>

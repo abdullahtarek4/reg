@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistical Analysis</title>
+    
+    <style>
+        body {
+            background-image: url('static/main.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align items at the top of the screen */
+            min-height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, auto);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .button {
+            width: 200px; /* Fixed width for all buttons */
+            height: auto;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 600px; /* Limit table width */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px; /* Adjust cell padding */
+            text-align: center;
+            color: white; /* changed text color to white */
+        }
+
+        th {
+            background-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="button" id="load-dataset" style="background-color: #8a23df;">Load Dataset</button>
+        <button class="button" id="ANOVA-table" style="background-color: #8a23df;">ANOVA Table</button>
+        <button class="button" id="calculate-R-squared-adjusted" style="background-color: #8a23df;">Calculate R Squared Adjusted</button>
+        <button class="button" id="partial-f-test" style="background-color: #8a23df;">Partial F Test</button>
+        <button class="button" id="ridge-regression" style="background-color: #8a23df;">Run Ridge Regression</button>
+        <button class="button" id="summary" style="background-color: #8a23df;">Summary</button>
+        <button class="button" id="load-data-after-partial-f-test" style="background-color: #8a23df;">Load Data after Partial F Test</button>
+        <button class="button" id="T" style="background-color: #8a23df;">T</button>
+        <button class="button" id="matrices" style="background-color: #8a23df;">Matrices</button>
+    </div>
+    <div id="anova-table-container"></div>
+     <div id="r-squared-container"></div>
+     <div id="partial-f-output"></div>
+     <table id="summary-table">
+    </table>
+
+
+    <table id="tTestResultTable">
+        <thead>
+            <tr>
+                <th>Beta</th>
+                <th>Standard Error</th>
+                <th>T-Value</th>
+                <th>Degrees of Freedom</th>
+                <th>Critical Value</th>
+                <th>Is Significant</th>
+            </tr>
+        </thead>
+        <tbody id="tTestResultTableBody">
+            <!-- Table rows will be added dynamically here -->
+        </tbody>
+    </table>
+
+    <table id="data-table" style="display: none;">
+        <thead>
+            <tr>
+                <th>TAX</th>
+                <th>RM</th>
+                <th>LSTAT</th>
+                <th>DIS</th>
+                <th>MEDV</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    
+    
+
+
+    <script>
+var dataset = [
+        { TAX: 296.0, RM: 6.575, LSTAT: 4.98, DIS: 4.0900, MEDV: 24.0 },
+        { TAX: 242.0, RM: 6.421, LSTAT: 9.14, DIS: 4.9671, MEDV: 21.6 },
+        { TAX: 242.0, RM: 7.185, LSTAT: 4.03, DIS: 4.9671, MEDV: 34.7 },
+        { TAX: 222.0, RM: 6.998, LSTAT: 2.94, DIS: 6.0622, MEDV: 33.4 },
+        { TAX: 222.0, RM: 7.147, LSTAT: 5.33, DIS: 6.0622, MEDV: 36.2 },
+        { TAX: 222.0, RM: 6.430, LSTAT: 5.21, DIS: 6.0622, MEDV: 28.7 },
+        { TAX: 311.0, RM: 6.012, LSTAT: 12.43, DIS: 5.5605, MEDV: 22.9 },
+        { TAX: 311.0, RM: 6.172, LSTAT: 19.15, DIS: 5.9505, MEDV: 27.1 },
+        { TAX: 311.0, RM: 5.631, LSTAT: 29.93, DIS: 6.0821, MEDV: 16.5 },
+        { TAX: 311.0, RM: 6.004, LSTAT: 17.10, DIS: 6.5921, MEDV: 18.9 },
+        { TAX: 311.0, RM: 6.377, LSTAT: 20.45, DIS: 6.3467, MEDV: 15.0 },
+        { TAX: 311.0, RM: 6.009, LSTAT: 13.27, DIS: 6.2267, MEDV: 18.9 },
+        { TAX: 311.0, RM: 5.889, LSTAT: 15.71, DIS: 5.4509, MEDV: 21.7 },
+        { TAX: 307.0, RM: 5.949, LSTAT: 8.26, DIS: 4.7075, MEDV: 20.4 },
+        { TAX: 307.0, RM: 6.096, LSTAT: 10.26, DIS: 4.4619, MEDV: 18.2 },
+        { TAX: 307.0, RM: 5.834, LSTAT: 8.47, DIS: 4.4986, MEDV: 19.9 },
+        { TAX: 307.0, RM: 5.935, LSTAT: 6.58, DIS: 4.4986, MEDV: 23.1 },
+        { TAX: 307.0, RM: 5.990, LSTAT: 14.67, DIS: 4.2579, MEDV: 17.5 },
+        { TAX: 307.0, RM: 5.456, LSTAT: 11.69, DIS: 3.7965, MEDV: 20.2 },
+        { TAX: 307.0, RM: 5.727, LSTAT: 11.28, DIS: 3.7965, MEDV: 18.2 },
+        { TAX: 307.0, RM: 5.570, LSTAT: 21.02, DIS: 3.7979, MEDV: 13.6 },
+        { TAX: 307.0, RM: 5.965, LSTAT: 13.83, DIS: 4.0123, MEDV: 19.6 },
+        { TAX: 307.0, RM: 6.142, LSTAT: 18.72, DIS: 3.9769, MEDV: 15.2 },
+        { TAX: 307.0, RM: 5.813, LSTAT: 19.88, DIS: 4.0952, MEDV: 14.5 },
+        { TAX: 307.0, RM: 5.924, LSTAT: 16.30, DIS: 4.3996, MEDV: 15.6 },
+        { TAX: 307.0, RM: 5.599, LSTAT: 16.51, DIS: 4.4546, MEDV: 13.9 },
+        { TAX: 307.0, RM: 5.813, LSTAT: 14.81, DIS: 4.6820, MEDV: 16.6 },
+        { TAX: 307.0, RM: 6.047, LSTAT: 17.28, DIS: 4.4534, MEDV: 14.8 },
+        { TAX: 307.0, RM: 6.495, LSTAT: 12.80, DIS: 4.4547, MEDV: 18.4 },
+        { TAX: 307.0, RM: 6.674, LSTAT: 11.98, DIS: 4.2390, MEDV: 21.0 },
+        { TAX: 307.0, RM: 5.713, LSTAT: 22.60, DIS: 4.2330, MEDV: 12.7 },
+        { TAX: 307.0, RM: 6.072, LSTAT: 13.04, DIS: 4.1750, MEDV: 14.5 },
+        { TAX: 307.0, RM: 5.950, LSTAT: 27.71, DIS: 3.9900, MEDV: 13.2 },
+        { TAX: 307.0, RM: 5.701, LSTAT: 18.35, DIS: 3.7872, MEDV: 13.1 },
+        { TAX: 307.0, RM: 6.096, LSTAT: 20.34, DIS: 3.7598, MEDV: 13.5 },
+        { TAX: 279.0, RM: 5.933, LSTAT: 9.68, DIS: 3.3603, MEDV: 18.9 },
+        { TAX: 279.0, RM: 5.841, LSTAT: 11.41, DIS: 3.3779, MEDV: 20.0 },
+        { TAX: 279.0, RM: 5.850, LSTAT: 8.77, DIS: 3.9342, MEDV: 21.0 },
+        { TAX: 279.0, RM: 5.966, LSTAT: 10.13, DIS: 3.8473, MEDV: 24.7 },
+        { TAX: 252.0, RM: 6.595, LSTAT: 4.32, DIS: 5.4011, MEDV: 30.8 },
+        { TAX: 252.0, RM: 7.024, LSTAT: 1.98, DIS: 5.4011, MEDV: 34.9 },
+        { TAX: 233.0, RM: 6.770, LSTAT: 4.84, DIS: 5.7209, MEDV: 26.6 },
+        { TAX: 233.0, RM: 6.169, LSTAT: 5.81, DIS: 5.7209, MEDV: 25.3 },
+        { TAX: 233.0, RM: 6.211, LSTAT: 7.44, DIS: 5.7209, MEDV: 24.7 },
+        { TAX: 233.0, RM: 6.069, LSTAT: 9.55, DIS: 5.7209, MEDV: 21.2 },
+        { TAX: 233.0, RM: 5.682, LSTAT: 10.21, DIS: 5.1004, MEDV: 19.3 },
+        { TAX: 233.0, RM: 5.786, LSTAT: 14.15, DIS: 5.1004, MEDV: 20.0 },
+        { TAX: 233.0, RM: 6.030, LSTAT: 18.80, DIS: 5.6894, MEDV: 16.6 },
+        { TAX: 233.0, RM: 5.399, LSTAT: 30.81, DIS: 5.8700, MEDV: 14.4 },
+        { TAX: 233.0, RM: 5.602, LSTAT: 16.20, DIS: 6.0877, MEDV: 19.4 }
+    ];
+document.getElementById('load-dataset').addEventListener('click', function() {
+    
+    var tbody = document.querySelector('#data-table tbody');
+    tbody.innerHTML = '';
+
+    dataset.forEach(function(rowData) {
+        var row = document.createElement('tr');
+        Object.values(rowData).forEach(function(cellData) {
+            var cell = document.createElement('td');
+            cell.textContent = cellData;
+            cell.style.color = 'white'; // Set text color to white
+            row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+    });
+
+    document.getElementById('data-table').style.display = 'block'; // Display the table
+});
+
+
+
+
+       document.getElementById('ANOVA-table').addEventListener('click', function() {
+    // Retrieve the loaded dataset
+    
+
+    var medvValues = dataset.map(function(row) {
+        return row.MEDV;
+    });
+
+    // Calculate the overall mean of the target variable
+    var overallMean = medvValues.reduce(function(acc, val) {
+        return acc + val;
+    }, 0) / medvValues.length;
+
+    // Calculate the total sum of squares (SST)
+    var sst = medvValues.reduce(function(acc, val) {
+        return acc + Math.pow((val - overallMean), 2);
+    }, 0);
+
+    // Number of predictor variables (groups)
+    var numGroups = Object.keys(dataset[0]).length - 1; // Excluding the target variable column (MEDV)
+
+    // Initialize arrays to store group means and group sizes
+    var groupMeans = [];
+    var groupSizes = [];
+
+    // Calculate group means and sizes
+    for (var i = 0; i < numGroups; i++) {
+        var groupValues = dataset.map(function(row) {
+            return row[Object.keys(dataset[0])[i]]; // Extract values for the current group (column)
+        });
+
+        var groupMean = groupValues.reduce(function(acc, val) {
+            return acc + val;
+        }, 0) / groupValues.length;
+
+        groupMeans.push(groupMean);
+        groupSizes.push(groupValues.length);
+    }
+
+    // Calculate the between-group sum of squares (SSB) and degrees of freedom (DF)
+    var ssb = 0;
+    for (var j = 0; j < numGroups; j++) {
+        ssb += groupSizes[j] * Math.pow((groupMeans[j] - overallMean), 2);
+    }
+    var dfBetween = numGroups - 1;
+
+    // Calculate the within-group sum of squares (SSW) and degrees of freedom (DF)
+    var ssw = 0;
+    var dfWithin = medvValues.length - numGroups;
+
+    // Calculate the mean square for within-group (MSW)
+    var msw = ssw / dfWithin;
+
+    // Calculate the F-statistic (only if dfBetween is not zero)
+    var fValue = dfBetween !== 0 ? (ssb / dfBetween) / msw : 0;
+
+    // Calculate the p-value using F-distribution tables or approximation
+    var anovaTableContent = "<h2>ANOVA Table</h2>" +
+        "<table>" +
+        "<tr><th>Source</th><th>SS</th><th>DF</th><th>MS</th><th>F</th></tr>" +
+        "<tr><td>Between Groups</td><td>" + ssb.toFixed(2) + "</td><td>" + dfBetween + "</td><td>" + (dfBetween !== 0 ? (ssb / dfBetween).toFixed(2) : "N/A") + "</td><td>" + (dfBetween !== 0 ? fValue.toFixed(2) : "N/A") + "</td></tr>" +
+        "<tr><td>Within Groups</td><td>" + ssw.toFixed(2) + "</td><td>" + dfWithin + "</td><td>" + msw.toFixed(2) + "</td></tr>" +
+        "</table>";
+    document.getElementById('anova-table-container').innerHTML = anovaTableContent;
+});
+
+       document.getElementById('calculate-R-squared-adjusted').addEventListener('click', function() {
+    // Retrieve the loaded dataset
+    
+
+    // Extract the target variable MEDV values into an array
+    var medvValues = dataset.map(function(row) {
+        return row.MEDV;
+    });
+
+    // Calculate the overall mean of the target variable
+    var overallMean = medvValues.reduce(function(acc, val) {
+        return acc + val;
+    }, 0) / medvValues.length;
+
+    // Calculate the total sum of squares (SST)
+    var sst = medvValues.reduce(function(acc, val) {
+        return acc + Math.pow((val - overallMean), 2);
+    }, 0);
+
+    // Number of predictor variables (features)
+    var numPredictors = Object.keys(dataset[0]).length - 1; // Excluding the target variable column (MEDV)
+
+    // Initialize arrays to store predicted values and residuals
+    var predictedValues = [];
+    var residuals = [];
+
+    // Calculate predicted values and residuals
+    for (var i = 0; i < dataset.length; i++) {
+        var predictedValue = 0;
+        for (var predictor in dataset[i]) {
+            if (predictor !== 'MEDV') {
+                predictedValue += dataset[i][predictor];
+            }
+        }
+        predictedValues.push(predictedValue);
+        residuals.push(dataset[i].MEDV - predictedValue);
+    }
+
+    // Calculate the regression sum of squares (SSR)
+    var ssr = predictedValues.reduce(function(acc, val) {
+        return acc + Math.pow((val - overallMean), 2);
+    }, 0);
+
+    // Calculate the residual sum of squares (SSE)
+    var sse = residuals.reduce(function(acc, val) {
+        return acc + Math.pow(val, 2);
+    }, 0);
+
+    // Calculate the degrees of freedom for regression (DFR) and residuals (DFE)
+    var dfr = numPredictors;
+    var dfe = dataset.length - numPredictors - 1;
+
+    // Calculate the mean square for regression (MSR) and residuals (MSE)
+    var msr = ssr / dfr;
+    var mse = sse / dfe;
+
+    // Calculate the R-squared (R^2) value
+    var rSquared = ssr / sst;
+
+    // Calculate the R-squared adjusted (R^2 adjusted) value
+    var rSquaredAdjusted = 1 - (mse / (sst / (dataset.length - 1))) * (dataset.length - 1) / dfe;
+
+    // Display the results
+    var rSquaredTable = "<h2>R-Squared and Adjusted R-Squared</h2>" +
+        "<table>" +
+        "<tr><th>Statistic</th><th>Value</th></tr>" +
+        "<tr><td>R-Squared (R^2)</td><td>" + rSquared.toFixed(4) + "</td></tr>" +
+        "<tr><td>Adjusted R-Squared (R^2 Adjusted)</td><td>" + rSquaredAdjusted.toFixed(4) + "</td></tr>" +
+        "</table>";
+
+    document.getElementById('r-squared-container').innerHTML = rSquaredTable;
+});
+
+        function calculateRSS(model, dataset) {
+    var rss = 0;
+    for (var i = 0; i < dataset.length; i++) {
+        var predictedValue = 0;
+        for (var predictor in model) {
+            if (predictor !== 'intercept') {
+                predictedValue += model[predictor] * dataset[i][predictor];
+            } else {
+                predictedValue += model[predictor];
+            }
+        }
+        rss += Math.pow(dataset[i].MEDV - predictedValue, 2);
+    }
+    return rss;
+}
+     function fitModel(predictors, dataset) {
+    var model = { intercept: 0 };
+    for (var i = 0; i < predictors.length; i++) {
+        model[predictors[i]] = 0; // Initialize coefficients
+    }
+
+    // Perform ordinary least squares regression
+    // Calculate the means of predictor variables
+    var means = {};
+    predictors.forEach(function(predictor) {
+        means[predictor] = dataset.reduce(function(sum, row) {
+            return sum + row[predictor];
+        }, 0) / dataset.length;
+    });
+
+    // Calculate the mean of the target variable (MEDV)
+    var meanMEDV = dataset.reduce(function(sum, row) {
+        return sum + row.MEDV;
+    }, 0) / dataset.length;
+
+    // Calculate the coefficients using OLS
+    var numerator = 0;
+    var denominator = 0;
+    for (var j = 0; j < dataset.length; j++) {
+        var y = dataset[j].MEDV;
+        var x = 0;
+        for (var predictor in model) {
+            if (predictor !== 'intercept') {
+                // Debugging logging
+                console.log('Predictor:', predictor);
+                console.log('Dataset value:', dataset[j][predictor]);
+                console.log('Mean:', means[predictor]);
+                console.log('Coefficient:', model[predictor]);
+                console.log('(x - mean(x)) * (y - mean(y)):', (dataset[j][predictor] - means[predictor]) * (y - meanMEDV));
+
+                x += (dataset[j][predictor] - means[predictor]) * (y - meanMEDV);
+            } else {
+                x += model[predictor];
+            }
+        }
+        numerator += x;
+        denominator += Math.pow(x, 2);
+    }
+
+    var beta = numerator / denominator;
+
+    // Update coefficients
+    for (var k = 0; k < predictors.length; k++) {
+        model[predictors[k]] = beta;
+    }
+
+    return model;
+}
+
+
+// Test the fitModel function with the dataset
+var predictors = ['TAX', 'RM', 'LSTAT', 'DIS'];
+var model = fitModel(predictors, dataset);
+console.log('Fitted Model:', model);
+
+
+        document.getElementById('partial-f-test').addEventListener('click', function() {
+    // Define the full model with all predictor variables
+    var fullModel = fitModel(['TAX', 'RM', 'LSTAT', 'DIS'], dataset);
+    var rssFull = calculateRSS(fullModel, dataset);
+    var numPredictorsFull = Object.keys(fullModel).length;
+
+    // Calculate the Partial F statistic for each predictor variable
+    var partialFs = {};
+    for (var predictor in fullModel) {
+        if (predictor !== 'intercept') {
+            // Fit a reduced model excluding the current predictor
+            var reducedPredictors = Object.keys(fullModel).filter(function(key) {
+                return key !== predictor;
+            });
+            var reducedModel = fitModel(reducedPredictors, dataset);
+
+            // Calculate RSS for the reduced model
+            var rssReduced = calculateRSS(reducedModel, dataset);
+            var numPredictorsReduced = Object.keys(reducedModel).length;
+
+            // Compute the Partial F statistic
+            var partialF = ((rssReduced - rssFull) / (numPredictorsFull - numPredictorsReduced)) /
+                (rssFull / (dataset.length - numPredictorsFull - 1));
+
+            // Store the Partial F statistic for the current predictor
+            partialFs[predictor] = partialF;
+        }
+    }
+
+    // Create a table to display the Partial F statistics
+    var table = document.createElement('table');
+    var headerRow = table.insertRow();
+    var predictorHeader = headerRow.insertCell();
+    predictorHeader.textContent = 'Predictor';
+    var partialFHeader = headerRow.insertCell();
+    partialFHeader.textContent = 'Partial F';
+
+    // Populate the table with Partial F statistics
+    for (var predictor in partialFs) {
+        var row = table.insertRow();
+        var predictorCell = row.insertCell();
+        predictorCell.textContent = predictor;
+        var partialFCell = row.insertCell();
+        partialFCell.textContent = partialFs[predictor];
+    }
+
+    // Display the table on the page
+    var outputDiv = document.getElementById('partial-f-output');
+    outputDiv.innerHTML = ''; // Clear previous content
+    outputDiv.appendChild(table);
+});
+
+     
+
+      // Define the event listener for the ridge regression button
+   document.getElementById('ridge-regression').addEventListener('click', function() {
+            // Define the Ridge regression function using numeric.js
+            function ridgeRegression(predictors, dataset, lambda) {
+                // Calculate the mean of the target variable (MEDV)
+                var meanMEDV = dataset.reduce(function(sum, row) {
+                    return sum + row.MEDV;
+                }, 0) / dataset.length;
+
+                // Calculate the means of predictor variables
+                var means = {};
+                predictors.forEach(function(predictor) {
+                    means[predictor] = dataset.reduce(function(sum, row) {
+                        return sum + row[predictor];
+                    }, 0) / dataset.length;
+                });
+
+                // Initialize arrays to store predictor variable values
+                var xMatrix = [];
+                var yVector = [];
+
+                // Populate the xMatrix and yVector arrays
+                dataset.forEach(function(row) {
+                    var xRow = [];
+                    predictors.forEach(function(predictor) {
+                        xRow.push(row[predictor] - means[predictor]); // Center the predictor variables
+                    });
+                    xMatrix.push(xRow);
+                    yVector.push(row.MEDV - meanMEDV); // Center the target variable
+                });
+
+                // Calculate the coefficients using Ridge regression formula
+                var xTx = numeric.dotMMbig(numeric.transpose(xMatrix), xMatrix);
+                var lambdaMatrix = numeric.mul(lambda, numeric.identity(predictors.length));
+                var coefficients = numeric.dot(numeric.inv(numeric.add(xTx, lambdaMatrix)), numeric.dot(numeric.transpose(xMatrix), yVector));
+
+                // Construct the model object
+                var model = { intercept: meanMEDV };
+                predictors.forEach(function(predictor, index) {
+                    model[predictor] = coefficients[index];
+                });
+
+                return model;
+            }
+
+            // Function to create a table and display the Ridge regression model
+            function displayRidgeModel(ridgeModel) {
+                var table = document.createElement('table');
+                var headerRow = table.insertRow();
+                var coefficientHeader = headerRow.insertCell();
+                coefficientHeader.textContent = 'Predictor';
+                var valueHeader = headerRow.insertCell();
+                valueHeader.textContent = 'Coefficient';
+                
+                // Populate the table with Ridge regression model coefficients
+                for (var predictor in ridgeModel) {
+                    if (predictor !== 'intercept') {
+                        var row = table.insertRow();
+                        var predictorCell = row.insertCell();
+                        predictorCell.textContent = predictor;
+                        var coefficientCell = row.insertCell();
+                        coefficientCell.textContent = ridgeModel[predictor];
+                    }
+                }
+
+                // Add the table to the document
+                document.body.appendChild(table);
+            }
+
+            // Test Ridge regression with a lambda value of 0.5
+            var predictors = ['TAX', 'RM', 'LSTAT', 'DIS'];
+            var lambda = 0.5;
+            var ridgeModel = ridgeRegression(predictors, dataset, lambda);
+            console.log('Ridge Regression Model:', ridgeModel);
+
+            // Display the Ridge regression model in a table
+            displayRidgeModel(ridgeModel);
+        });
+    
+
+
+
+document.getElementById('summary').addEventListener('click', function() {
+    var summaryTable = document.getElementById('summary-table');
+
+    // Clear any existing content in the table
+    summaryTable.innerHTML = '';
+
+    // Create header row
+    var headerRow = summaryTable.insertRow();
+    headerRow.innerHTML = '<th>Statistic</th><th>Value</th>';
+
+    // Define the summary data (assuming these variables are defined elsewhere in your code)
+    var basicStatistics = calculateBasicStatistics(dataset);
+    var missingValues = findMissingValues(dataset)
+    var correlationCoefficients = calculateCorrelation(dataset)
+    
+    // Populate the table with summary information
+    addSummaryRow(summaryTable, "Basic Statistics", basicStatistics);
+    addSummaryRow(summaryTable, "Missing Values", missingValues);
+    addSummaryRow(summaryTable, "Correlation Coefficients", correlationCoefficients);
+    
+});
+
+function addSummaryRow(table, label, data) {
+    var row = table.insertRow();
+    row.insertCell().textContent = label;
+    var valueCell = row.insertCell();
+    valueCell.textContent = JSON.stringify(data);
+}
+
+
+function calculateMean(values) {
+    return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+// Function to calculate the median of an array of values
+function calculateMedian(values) {
+    values.sort((a, b) => a - b);
+    var mid = Math.floor(values.length / 2);
+    return values.length % 2 !== 0 ? values[mid] : (values[mid - 1] + values[mid]) / 2;
+}
+
+// Function to calculate the standard deviation of an array of values
+function calculateStandardDeviation(values) {
+    var mean = calculateMean(values);
+    var variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / values.length;
+    return Math.sqrt(variance);
+}
+
+// Function to calculate basic statistics for each column in the dataset
+function calculateBasicStatistics(dataset) {
+    var columns = Object.keys(dataset[0]);
+    var statistics = {};
+    columns.forEach(column => {
+        var values = dataset.map(row => row[column]);
+        statistics[column] = {
+            mean: calculateMean(values),
+            median: calculateMedian(values),
+            standardDeviation: calculateStandardDeviation(values)
+        };
+    });
+    return statistics;
+} 
+
+
+function findMissingValues(dataset) {
+    var missingValues = {};
+    Object.keys(dataset[0]).forEach(function(key) {
+        missingValues[key] = dataset.filter(row => row[key] === undefined || row[key] === null).length;
+    });
+    return missingValues;
+}
+function calculateCorrelation(dataset) {
+    var correlations = {};
+    Object.keys(dataset[0]).forEach(function(key) {
+        if (key !== "MEDV") {
+            var xValues = dataset.map(row => row[key]);
+            var yValues = dataset.map(row => row["MEDV"]);
+            var correlation = calculatePearsonCorrelation(xValues, yValues);
+            correlations[key] = correlation;
+        }
+    });
+    return correlations;
+}
+
+function calculatePearsonCorrelation(xValues, yValues) {
+    var n = xValues.length;
+    var sumX = xValues.reduce((a, b) => a + b, 0);
+    var sumY = yValues.reduce((a, b) => a + b, 0);
+    var sumXY = xValues.reduce((acc, x, i) => acc + x * yValues[i], 0);
+    var sumXSquare = xValues.reduce((acc, x) => acc + x * x, 0);
+    var sumYSquare = yValues.reduce((acc, y) => acc + y * y, 0);
+
+    var numerator = n * sumXY - sumX * sumY;
+    var denominator = Math.sqrt((n * sumXSquare - sumX * sumX) * (n * sumYSquare - sumY * sumY));
+    return numerator / denominator;
+}
+function ridgeRegressionAnalysis(dataset, lambda) {
+    var X = [];
+    var y = [];
+    dataset.forEach(function(row) {
+        var features = [];
+        Object.keys(row).forEach(function(key) {
+            if (key !== "MEDV") {
+                features.push(row[key]);
+            }
+        });
+        X.push(features);
+        y.push(row["MEDV"]);
+    });
+
+    var XtX_lambdaI = add(identity(X[0].length), multiply(transpose(X), X), lambda);
+    var Xty = multiply(transpose(X), y);
+    var w = solve(XtX_lambdaI, Xty);
+    return w;
+}
+
+function displaySummary(basicStats, missingValues, correlations, regressionCoefficients) {
+    console.log("Basic Statistics:", basicStats);
+    console.log("Missing Values:", missingValues);
+    console.log("Correlation Coefficients:", correlations);
+    console.log("Regression Coefficients:", regressionCoefficients);
+}
+
+
+       // Define the dataset after performing Partial F Test and excluding the column with lower effect ("DIS")
+var updatedDataset = [
+    { TAX: 296.0, RM: 6.575, LSTAT: 4.98, MEDV: 24.0 },
+    { TAX: 242.0, RM: 6.421, LSTAT: 9.14, MEDV: 21.6 },
+    { TAX: 242.0, RM: 7.185, LSTAT: 4.03, MEDV: 34.7 },
+    { TAX: 222.0, RM: 6.998, LSTAT: 2.94, MEDV: 33.4 },
+    { TAX: 222.0, RM: 7.147, LSTAT: 5.33, MEDV: 36.2 },
+    { TAX: 222.0, RM: 6.430, LSTAT: 5.21, MEDV: 28.7 },
+    { TAX: 311.0, RM: 6.012, LSTAT: 12.43, MEDV: 22.9 },
+    { TAX: 311.0, RM: 6.172, LSTAT: 19.15, MEDV: 27.1 },
+    { TAX: 311.0, RM: 5.631, LSTAT: 29.93, MEDV: 16.5 },
+    { TAX: 311.0, RM: 6.004, LSTAT: 17.10, MEDV: 18.9 },
+    { TAX: 311.0, RM: 6.377, LSTAT: 20.45, MEDV: 15.0 },
+    { TAX: 311.0, RM: 6.009, LSTAT: 13.27, MEDV: 18.9 },
+    { TAX: 311.0, RM: 5.889, LSTAT: 15.71, MEDV: 21.7 },
+    { TAX: 307.0, RM: 5.949, LSTAT: 8.26, MEDV: 20.4 },
+    { TAX: 307.0, RM: 6.096, LSTAT: 10.26, MEDV: 18.2 },
+    { TAX: 307.0, RM: 5.834, LSTAT: 8.47, MEDV: 19.9 },
+    { TAX: 307.0, RM: 5.935, LSTAT: 6.58, MEDV: 23.1 },
+    { TAX: 307.0, RM: 5.990, LSTAT: 14.67, MEDV: 17.5 },
+    { TAX: 307.0, RM: 5.456, LSTAT: 11.69, MEDV: 20.2 },
+    { TAX: 307.0, RM: 5.727, LSTAT: 11.28, MEDV: 18.2 },
+    { TAX: 307.0, RM: 5.570, LSTAT: 21.02, MEDV: 13.6 },
+    { TAX: 307.0, RM: 5.965, LSTAT: 13.83, MEDV: 19.6 },
+    { TAX: 307.0, RM: 6.142, LSTAT: 18.72, MEDV: 15.2 },
+    { TAX: 307.0, RM: 5.813, LSTAT: 19.88, MEDV: 14.5 },
+    { TAX: 307.0, RM: 5.924, LSTAT: 16.30, MEDV: 15.6 },
+    { TAX: 307.0, RM: 5.599, LSTAT: 16.51, MEDV: 13.9 },
+    { TAX: 307.0, RM: 5.813, LSTAT: 14.81, MEDV: 16.6 },
+    { TAX: 307.0, RM: 6.047, LSTAT: 17.28, MEDV: 14.8 },
+    { TAX: 307.0, RM: 6.495, LSTAT: 12.80, MEDV: 18.4 },
+    { TAX: 307.0, RM: 6.674, LSTAT: 11.98, MEDV: 21.0 },
+    { TAX: 307.0, RM: 5.713, LSTAT: 22.60, MEDV: 12.7 },
+    { TAX: 307.0, RM: 6.072, LSTAT: 13.04, MEDV: 14.5 },
+    { TAX: 307.0, RM: 5.950, LSTAT: 27.71, MEDV: 13.2 },
+    { TAX: 307.0, RM: 5.701, LSTAT: 18.35, MEDV: 13.1 },
+    { TAX: 307.0, RM: 6.096, LSTAT: 20.34, MEDV: 13.5 },
+    { TAX: 279.0, RM: 5.933, LSTAT: 9.68, MEDV: 18.9 },
+    { TAX: 279.0, RM: 5.841, LSTAT: 11.41, MEDV: 20.0 },
+    { TAX: 279.0, RM: 5.850, LSTAT: 8.77, MEDV: 21.0 },
+    { TAX: 279.0, RM: 5.966, LSTAT: 10.13, MEDV: 24.7 },
+    { TAX: 252.0, RM: 6.595, LSTAT: 4.32, MEDV: 30.8 },
+    { TAX: 252.0, RM: 7.024, LSTAT: 1.98, MEDV: 34.9 },
+    { TAX: 233.0, RM: 6.770, LSTAT: 4.84, MEDV: 26.6 },
+    { TAX: 233.0, RM: 6.169, LSTAT: 5.81, MEDV: 25.3 },
+    { TAX: 233.0, RM: 6.211, LSTAT: 7.44, MEDV: 24.7 },
+    { TAX: 233.0, RM: 6.069, LSTAT: 9.55, MEDV: 21.2 },
+    { TAX: 233.0, RM: 5.682, LSTAT: 10.21, MEDV: 19.3 },
+    { TAX: 233.0, RM: 5.786, LSTAT: 14.15, MEDV: 20.0 },
+    { TAX: 233.0, RM: 6.030, LSTAT: 18.80, MEDV: 16.6 },
+    { TAX: 233.0, RM: 5.399, LSTAT: 30.81, MEDV: 14.4 },
+    { TAX: 233.0, RM: 5.602, LSTAT: 16.20, MEDV: 19.4 }
+];
+
+
+// Function to display the loaded data in a table
+function displayLoadedData(dataset) {
+    // Get the container element to display the table
+    var container = document.getElementById('data-table');
+
+    // Create a table element
+    var table = document.createElement('table');
+
+    // Create a header row
+    var headerRow = table.insertRow();
+    Object.keys(dataset[0]).forEach(key => {
+        // Exclude the "DIS" column
+        if (key !== "DIS") {
+            var headerCell = document.createElement('th');
+            headerCell.textContent = key;
+            headerRow.appendChild(headerCell);
+        }
+    });
+
+    // Add data rows
+    dataset.forEach(rowData => {
+        var row = table.insertRow();
+        // Exclude the "DIS" column
+        Object.keys(rowData).forEach(key => {
+            if (key !== "DIS") {
+                var cell = row.insertCell();
+                cell.textContent = rowData[key];
+            }
+        });
+    });
+
+    // Append the table to the container
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+// Function to handle the "Load Data after Partial F Test" button click
+document.getElementById('load-data-after-partial-f-test').addEventListener('click', function() {
+    // Display the updated dataset
+    displayLoadedData(updatedDataset);
+});
+
+
+// Function to handle the "Load Data after Partial F Test" button click
+document.getElementById('load-data-after-partial-f-test').addEventListener('click', function() {
+    // Display the updated dataset
+    displayLoadedData(updatedDataset);
+});
+
+// Function to calculate the t-test for individual regression coefficients
+function calculateTTest(dataset, independentVariable, dependentVariable) {
+    // Extract values for the independent and dependent variables
+    const independentValues = dataset.map(data => data[independentVariable]);
+    const dependentValues = dataset.map(data => data[dependentVariable]);
+
+    // Calculate the means of the independent and dependent variables
+    const meanIndependent = calculateMean(independentValues);
+    const meanDependent = calculateMean(dependentValues);
+
+    // Calculate the sum of squared differences for the independent variable
+    const ssIndependent = independentValues.reduce((acc, value) => acc + Math.pow(value - meanIndependent, 2), 0);
+
+    // Calculate the sum of squared differences for the dependent variable
+    const ssDependent = dependentValues.reduce((acc, value) => acc + Math.pow(value - meanDependent, 2), 0);
+
+    // Calculate the covariance of the independent and dependent variables
+    const covariance = dataset.reduce((acc, data) => {
+        return acc + (data[independentVariable] - meanIndependent) * (data[dependentVariable] - meanDependent);
+    }, 0);
+
+    // Calculate the slope (beta)
+    const beta = covariance / ssIndependent;
+
+    // Calculate the standard error of the estimate
+    const se = Math.sqrt((ssDependent - beta * covariance) / (dataset.length - 2));
+
+    // Calculate the t-value
+    const t = beta / se;
+
+    // Calculate the degrees of freedom
+    const df = dataset.length - 2;
+
+    // Perform a two-tailed t-test
+    const alpha = 0.05; // Significance level
+    const criticalValue = studentTCriticalValue(df, alpha);
+
+    // Determine if the coefficient is statistically significant
+    const isSignificant = Math.abs(t) > criticalValue;
+
+    return {
+        beta: beta,
+        standardError: se,
+        tValue: t,
+        degreesOfFreedom: df,
+        criticalValue: criticalValue,
+        isSignificant: isSignificant
+    };
+}
+
+// Function to calculate the critical t-value from the t-distribution table
+function studentTCriticalValue(df, alpha) {
+    // Lookup critical value from t-distribution table (two-tailed test)
+    // For simplicity, you can use a precomputed table or implement an algorithm to calculate it
+    // Here, I'll provide a simple lookup for common degrees of freedom
+    const tTable = {
+        1: { '0.05': 12.71, '0.01': 63.66 },
+        2: { '0.05': 4.303, '0.01': 9.925 },
+        // Add more degrees of freedom as needed
+    };
+
+    // Round alpha to nearest decimal
+    const roundedAlpha = Math.round(alpha * 100) / 100;
+
+    // Lookup critical value from table
+    if (tTable[df] && tTable[df][roundedAlpha.toString()]) {
+        return tTable[df][roundedAlpha.toString()];
+    } else {
+        // If the degrees of freedom is not found, you can use an approximation or more sophisticated method
+        console.error('Critical t-value not found for the given degrees of freedom.');
+        return null;
+    }
+}
+
+// Example usage:
+const tTestResult = calculateTTest(dataset, 'RM', 'MEDV');
+console.log(tTestResult);
+
+
+function calculateCriticalTValue(degreesOfFreedom) {
+    // Degrees of freedom check
+    if (degreesOfFreedom <= 0) {
+        return null; // Cannot calculate for non-positive degrees of freedom
+    }
+
+    // Critical t-value lookup table
+    const tValues = {
+        10: 2.228,
+        20: 2.086,
+        30: 2.042,
+        40: 2.021,
+        50: 2.009,
+        // Add more values as needed...
+    };
+
+    // Check if the degrees of freedom are in the lookup table
+    if (degreesOfFreedom in tValues) {
+        return tValues[degreesOfFreedom];
+    } else {
+        // If degrees of freedom are not in the table, interpolate or use other methods
+        // Here, we'll simply return null for degrees of freedom not in the table
+        return null;
+    }
+}
+
+// Function to perform t-test
+function calculateTTest(beta, standardError, degreesOfFreedom) {
+    // Calculate t-value
+    const tValue = beta / standardError;
+    // Calculate critical t-value
+    const criticalValue = calculateCriticalTValue(degreesOfFreedom);
+    return { beta, standardError, tValue, degreesOfFreedom, criticalValue };
+}
+     // Function to update the table with t-test results
+function updateTTestResultTable(tTestResult) {
+    const tableBody = document.getElementById('tTestResultTableBody');
+    // Create a new row
+    const newRow = tableBody.insertRow();
+    // Insert cells for each column
+    const betaCell = newRow.insertCell(0);
+    const standardErrorCell = newRow.insertCell(1);
+    const tValueCell = newRow.insertCell(2);
+    const degreesOfFreedomCell = newRow.insertCell(3);
+    const criticalValueCell = newRow.insertCell(4);
+    const isSignificantCell = newRow.insertCell(5);
+    // Fill cells with data
+    betaCell.innerText = tTestResult.beta;
+    standardErrorCell.innerText = tTestResult.standardError;
+    tValueCell.innerText = tTestResult.tValue;
+    degreesOfFreedomCell.innerText = tTestResult.degreesOfFreedom;
+    criticalValueCell.innerText = tTestResult.criticalValue || "N/A";
+    isSignificantCell.innerText = tTestResult.isSignificant ? "Yes" : "No";
+}
+
+// Function to handle T button click event
+document.getElementById('T').addEventListener('click', function() {
+    // Sample data for demonstration
+    const degreesOfFreedom = 48;
+    const beta = 10.824099245718575;
+    const standardError = 3.916622569962929;
+
+    // Perform t-test
+    const tTestResult = calculateTTest(beta, standardError, degreesOfFreedom);
+
+    // Update the table with t-test result
+    updateTTestResultTable(tTestResult);
+});
+
+
+
+        document.getElementById('matrices').addEventListener('click', function() {
+    // Redirect to the /mat route within the same window
+    window.location.href = "/mat"; // This will navigate to the /mat route defined in Flask, which renders mat.html
+});
+
+
+
+    </script>
+</body>
+</html>

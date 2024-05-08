@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linear Regression</title>
+<style>
+  /* Styles for the buttons */
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-image: url("static/multiple.jpg"); /* Adjust the path to your image */
+    background-size: cover;
+  }
+
+  .buttons {
+    text-align: center;
+  }
+
+  .button {
+    background-color: #56bcb1ab;
+    border: none;
+    color: white;
+    padding: 30px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+
+  /* Styles for the sections */
+  .section {
+    display: none;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8); /* Fallback background color */
+    backdrop-filter: blur(5px); /* Adjust the blur effect if needed */
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="buttons">
+    <!-- Buttons with links -->
+    <a href="/index"><button class="button">Simple Linear Regression</button></a>
+    <a href="/multiple"><button class="button">Multiple Linear Regression</button></a>
+  </div>
+</div>
+
+<!-- Sections -->
+<div id="simpleSection" class="section">
+  <!-- Content for Simple Linear Regression -->
+  <h2>Simple Linear Regression</h2>
+  <p>This is the content for Simple Linear Regression.</p>
+</div>
+
+<div id="multipleSection" class="section">
+  <!-- Content for Multiple Linear Regression -->
+  <h2>Multiple Linear Regression</h2>
+  <p>This is the content for Multiple Linear Regression.</p>
+</div>
+
+<!-- JavaScript to handle button clicks -->
+<script>
+  // Get references to elements
+  const simpleSection = document.getElementById('simpleSection');
+  const multipleSection = document.getElementById('multipleSection');
+
+  // Add event listeners to buttons
+  simpleSection.addEventListener('click', () => {
+    window.location.href = '/index';
+  });
+
+  multipleSection.addEventListener('click', () => {
+    window.location.href = '/multiple';
+  });
+</script>
+
+</body>
+</html>
